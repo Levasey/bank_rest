@@ -1,1 +1,434 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: Bank cards API
+  version: 1.0.0
+  description: |
+    REST API управления банковскими картами: карты, пользователи, переводы между картами.
+    Аутентификация через JWT (кроме `/api/auth/login`).
+servers:
+  - url: http://localhost:8080
+    description: Локальная разработка
+tags:
+  - name: Auth
+  - name: Users
+  - name: Cards
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Получить JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Токен выдан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Неверные учётные данные
+  /api/users:
+    get:
+      tags: [Users]
+      summary: Список пользователей (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Страница пользователей
+        '403':
+          description: Доступ запрещён
+    post:
+      tags: [Users]
+      summary: Создать пользователя (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: Создан
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Пользователь по id (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Найден
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Users]
+      summary: Обновить пользователя (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: Обновлён
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Users]
+      summary: Удалить пользователя (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: Удалён
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/cards:
+    get:
+      tags: [Cards]
+      summary: Список карт (USER — только свои; ADMIN — все или фильтр userId)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/CardStatus'
+        - name: search
+          in: query
+          description: Поиск по держателю или последним 4 цифрам
+          schema:
+            type: string
+        - name: userId
+          in: query
+          description: Только для ADMIN — фильтр по владельцу
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Страница карт
+    post:
+      tags: [Cards]
+      summary: Создать карту (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardCreateRequest'
+      responses:
+        '201':
+          description: Создана
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/cards/{id}:
+    get:
+      tags: [Cards]
+      summary: Карта по id
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CardId'
+      responses:
+        '200':
+          description: Найдена
+        '403':
+          description: Нет доступа
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Cards]
+      summary: Обновить карту (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardUpdateRequest'
+      responses:
+        '200':
+          description: Обновлена
+    delete:
+      tags: [Cards]
+      summary: Удалить карту (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CardId'
+      responses:
+        '204':
+          description: Удалена
+  /api/cards/{id}/status:
+    patch:
+      tags: [Cards]
+      summary: Изменить статус карты (ADMIN)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CardId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardStatusPatchRequest'
+      responses:
+        '200':
+          description: Обновлено
+  /api/cards/{id}/request-block:
+    post:
+      tags: [Cards]
+      summary: Запросить блокировку своей карты (USER)
+      security: [{ bearer-jwt: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CardId'
+      responses:
+        '200':
+          description: Карта заблокирована
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          description: Не ваша карта
+  /api/cards/transfers:
+    post:
+      tags: [Cards]
+      summary: Перевод между картами (свои для USER; ADMIN — любые)
+      security: [{ bearer-jwt: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '204':
+          description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          description: Запрещено
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Конфликт оптимистической блокировки при параллельном обновлении
+components:
+  securitySchemes:
+    bearer-jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CardId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 20
+    Sort:
+      name: sort
+      in: query
+      description: 'Например: username,asc или createdAt,desc'
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Ошибка валидации или бизнес-правил
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    NotFound:
+      description: Не найдено
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresInSeconds:
+          type: integer
+          format: int64
+    UserRole:
+      type: string
+      enum: [ADMIN, USER]
+    UserCreateRequest:
+      type: object
+      required: [username, email, password, role]
+      properties:
+        username:
+          type: string
+          maxLength: 64
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        role:
+          $ref: '#/components/schemas/UserRole'
+    UserUpdateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        enabled:
+          type: boolean
+        role:
+          $ref: '#/components/schemas/UserRole'
+    CardStatus:
+      type: string
+      enum: [ACTIVE, BLOCKED, EXPIRED]
+    CardCreateRequest:
+      type: object
+      required: [pan, holderName, expiryMonth, expiryYear, balance, userId]
+      properties:
+        pan:
+          type: string
+          description: 13–19 цифр (допускаются пробелы в строке)
+          minLength: 13
+          maxLength: 19
+        holderName:
+          type: string
+        expiryMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+        expiryYear:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        balance:
+          type: number
+          minimum: 0
+        userId:
+          type: string
+          format: uuid
+    CardUpdateRequest:
+      type: object
+      properties:
+        holderName:
+          type: string
+        status:
+          $ref: '#/components/schemas/CardStatus'
+    CardStatusPatchRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/CardStatus'
+    TransferRequest:
+      type: object
+      required: [fromCardId, toCardId, amount]
+      properties:
+        fromCardId:
+          type: string
+          format: uuid
+        toCardId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          minimum: 0.01
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        maskedPan:
+          type: string
+          example: '**** **** **** 1111'
+        holderName:
+          type: string
+        expiryMonth:
+          type: integer
+        expiryYear:
+          type: integer
+        status:
+          $ref: '#/components/schemas/CardStatus'
+        balance:
+          type: number
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ErrorBody:
+      type: object
+      properties:
+        message:
+          type: string
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: string
