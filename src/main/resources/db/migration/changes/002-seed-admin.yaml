@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-seed-admin-user
+      author: bankcards
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM users WHERE username = 'admin'
+      changes:
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            sql: |
+              INSERT INTO users (id, username, email, password_hash, role, enabled, created_at)
+              VALUES (
+                '00000000-0000-0000-0000-000000000001',
+                'admin',
+                'admin@example.com',
+                '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG7YB1TJyK7hPhMMNC',
+                'ADMIN',
+                true,
+                NOW()
+              );
