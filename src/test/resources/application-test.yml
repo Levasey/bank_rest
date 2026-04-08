@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nonexistent
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: false
+
+app:
+  security:
+    jwt:
+      secret: "test-secret-key-must-be-long-enough-for-hmac-256-bits!!"
+      expiration-ms: 3600000
+    encryption:
+      key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
