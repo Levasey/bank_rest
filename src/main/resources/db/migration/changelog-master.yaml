@@ -3,3 +3,7 @@ databaseChangeLog:
       file: classpath:db/migration/changes/001-initial-schema.yaml
   - include:
       file: classpath:db/migration/changes/002-seed-admin.yaml
+  - include:
+      file: classpath:db/migration/changes/003-last-four-varchar.yaml
+  - include:
+      file: classpath:db/migration/changes/004-fix-admin-password.yaml

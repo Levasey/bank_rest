@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: bankcards
       POSTGRES_PASSWORD: bankcards
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-15432}:5432"
     volumes:
       - bankcards_pg:/var/lib/postgresql/data
     healthcheck:
@@ -16,6 +16,8 @@ services:
       retries: 5
 
   app:
+    profiles:
+      - with-app
     build: .
     ports:
       - "8080:8080"

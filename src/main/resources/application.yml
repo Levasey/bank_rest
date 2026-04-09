@@ -2,9 +2,9 @@ spring:
   application:
     name: bankcards
   datasource:
-    url: jdbc:postgresql://localhost:5432/bankcards
-    username: bankcards
-    password: bankcards
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:15432}/bankcards
+    username: ${DATABASE_USER:bankcards}
+    password: ${DATABASE_PASSWORD:bankcards}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -18,7 +18,7 @@ spring:
     change-log: classpath:db/migration/changelog-master.yaml
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8081}
 
 app:
   security:

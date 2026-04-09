@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-last-four-varchar
+      author: bankcards
+      changes:
+        - modifyDataType:
+            tableName: cards
+            columnName: last_four
+            newDataType: varchar(4)
