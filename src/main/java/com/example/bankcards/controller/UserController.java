@@ -4,6 +4,7 @@ import com.example.bankcards.dto.UserCreateRequest;
 import com.example.bankcards.dto.UserResponse;
 import com.example.bankcards.dto.UserUpdateRequest;
 import com.example.bankcards.service.UserManagementService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@SecurityRequirement(name = "bearer-jwt")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

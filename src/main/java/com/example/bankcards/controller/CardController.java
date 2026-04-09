@@ -7,6 +7,7 @@ import com.example.bankcards.dto.CardUpdateRequest;
 import com.example.bankcards.dto.TransferRequest;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.service.CardManagementService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@SecurityRequirement(name = "bearer-jwt")
 @RestController
 @RequestMapping("/api/cards")
 public class CardController {
