@@ -18,7 +18,7 @@ spring:
     change-log: classpath:db/migration/changelog-master.yaml
 
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8080}
 
 app:
   security:
